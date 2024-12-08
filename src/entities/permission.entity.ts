@@ -1,13 +1,13 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm'
 
-@Entity("permissions")
+@Entity('permissions')
 export class Permission {
   @PrimaryGeneratedColumn() // Auto-increment primary key
-  id: number;
+  id: number
 
   @Column()
-  permission: string;
+  permission: string
 
   @Column({ default: 1 })
-  status: number;
+  status: number
 }

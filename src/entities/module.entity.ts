@@ -1,13 +1,13 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm'
 
-@Entity("modules")
+@Entity('modules')
 export class Module {
   @PrimaryGeneratedColumn() // Auto-increment primary key
-  id: number;
+  id: number
 
   @Column()
-  module: string;
+  module: string
 
   @Column({ default: 1 })
-  status: number;
+  status: number
 }

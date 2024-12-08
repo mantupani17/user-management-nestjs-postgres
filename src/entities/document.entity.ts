@@ -1,22 +1,22 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm'
 
 @Entity('documents')
 export class Document {
   @PrimaryGeneratedColumn()
-  id: number;
+  id: number
 
   @Column()
-  fileName: string;
+  fileName: string
 
   @Column()
-  filePath: string;
+  filePath: string
 
   @Column()
-  fileType: string;
+  fileType: string
 
   @Column()
-  size: number;
+  size: number
 
   @Column()
-  description: string;  // Other details, e.g., a description for the document
+  description: string // Other details, e.g., a description for the document
 }

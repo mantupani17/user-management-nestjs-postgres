@@ -1,14 +1,13 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn } from 'typeorm';
-import { User } from './user.entity';
+import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm'
 
-@Entity("roles")
+@Entity('roles')
 export class Role {
   @PrimaryGeneratedColumn() // Auto-increment primary key
-  id: number;
+  id: number
 
   @Column()
-  role: string;
+  role: string
 
   @Column({ default: 1 })
-  status: number;
+  status: number
 }

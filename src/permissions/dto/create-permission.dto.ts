@@ -1,6 +1,6 @@
-import { IsString } from "class-validator";
+import { IsString } from 'class-validator'
 
 export class CreatePermissionDto {
-    @IsString()
-    permission: string
+  @IsString()
+  permission: string
 }

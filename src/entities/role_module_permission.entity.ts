@@ -1,35 +1,41 @@
-import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, ManyToMany, ManyToOne } from 'typeorm';
-import { Role } from './role.entity';
-import { Module as ModuleEntity } from './module.entity';
-import { Permission } from './permission.entity';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  JoinColumn,
+  ManyToOne,
+} from 'typeorm'
+import { Role } from './role.entity'
+import { Module as ModuleEntity } from './module.entity'
+import { Permission } from './permission.entity'
 
-@Entity("role_module_permissions")
+@Entity('role_module_permissions')
 export class RoleModulePermission {
   @PrimaryGeneratedColumn() // Auto-increment primary key
-  id: number;
+  id: number
 
   @Column()
-  moduleId: number;
+  moduleId: number
 
   @Column()
-  permissionId: number;
+  permissionId: number
 
   @Column()
-  roleId: number;
+  roleId: number
 
   @Column({ default: 1 })
-  status: number;
+  status: number
 
   // Reference for join
   @ManyToOne(() => ModuleEntity)
   @JoinColumn([{ name: 'moduleId' }])
-  modules: ModuleEntity;
+  modules: ModuleEntity
 
   @ManyToOne(() => Role)
   @JoinColumn({ name: 'roleId' })
-  roles: Role;
+  roles: Role
 
   @ManyToOne(() => Permission)
   @JoinColumn({ name: 'permissionId' })
-  permissions: Permission;
+  permissions: Permission
 }
