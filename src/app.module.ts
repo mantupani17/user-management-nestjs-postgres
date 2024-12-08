@@ -33,6 +33,7 @@ import { SeederService } from './common/seeder.service'
 import { UserService } from './user/user.service'
 import { CryptoService } from './common/crypto/crypto.service'
 import { RolesService } from './roles/roles.service'
+import { WinstonLoggerService } from './common/logger/logger.service'
 
 @Module({
   imports: [
@@ -92,6 +93,7 @@ import { RolesService } from './roles/roles.service'
     CryptoService,
     RolesService,
     SeederService,
+    WinstonLoggerService,
   ],
 })
 export class AppModule {}
