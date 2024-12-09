@@ -28,7 +28,7 @@
 ## Run in Local
 - npm install
 - Create a database in postgres
-- Setup the env vars creae a file .env in the project folder
+- Setup the env vars create a file .env in the project folder
 `
     PORT=3009
     DATABASE_HOST=localhost
