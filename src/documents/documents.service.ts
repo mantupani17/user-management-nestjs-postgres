@@ -2,7 +2,11 @@ import { Injectable, NotFoundException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { Document as DocumentEntity } from '@app/entities'
-import { CreateDocumentDto, FileDto } from './dtos/create-document.dto'
+import {
+  CreateDocumentDto,
+  FileDto,
+  UpdateDocumentDto,
+} from './dtos/create-document.dto'
 import * as fs from 'fs'
 import * as path from 'path'
 import { BaseService } from '@app/common/base.service'
@@ -30,7 +34,7 @@ export class DocumentsService extends BaseService {
   // This method will save the file metadata and move the file
   async uploadFile(
     file: FileDto,
-    createDocumentDto: CreateDocumentDto,
+    createDocumentDto: CreateDocumentDto | UpdateDocumentDto,
   ): Promise<any> {
     // Define the path where the file will be stored
     if (!fs.existsSync(this.uploadPath)) {

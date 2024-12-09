@@ -72,8 +72,22 @@ export class DocumentsController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateModuleDto: UpdateDocumentDto) {
-    return this.documentService.update(+id, updateModuleDto)
+  @UseInterceptors(FileInterceptor('file'))
+  async update(
+    @Param('id') id: string,
+    @Body() updateModuleDto: UpdateDocumentDto,
+    @UploadedFile() file: FileDto,
+  ) {
+    const details = instanceToPlain(await this.documentService.findOne(+id))
+    // remove the document
+    if (!details) throw new NotFoundException('Document not found')
+
+    await this.documentService.removeDocument(details.filePath)
+    const uploadRes = await this.documentService.uploadFile(
+      file,
+      updateModuleDto,
+    )
+    return this.documentService.update(+id, uploadRes)
   }
 
   @Delete(':id')
