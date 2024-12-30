@@ -1,16 +1,39 @@
 import { NestFactory } from '@nestjs/core'
 import { AppModule } from './app.module'
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor'
-import { ValidationPipe } from '@nestjs/common'
+import { Logger, ValidationPipe } from '@nestjs/common'
 import { SwaggerService } from './common/servers/swagger'
 import { ConfigService } from '@nestjs/config'
 import { WinstonLoggerService } from './common/logger/logger.service'
+import { helmetSer } from '@app/common/servers/helmet'
+import { requestBodyLimit } from './common/servers/body-limit'
+import { PayloadTooLargeFilter } from './common/filters/payload-too-large'
+import { sanitizeMongoQuery } from './common/servers/mongo-sanitize'
+// import mongoose from 'mongoose'
+import * as cookieParser from 'cookie-parser'
+import { enableCors } from './common/servers/enable-cors'
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule)
+  const app = await NestFactory.create(AppModule, {
+    logger: new WinstonLoggerService(),
+  })
   const cfg = app.get(ConfigService)
+  const logger = new Logger()
+
+  // Setting the request body
+  requestBodyLimit(app, cfg.get<number>('request_limit'))
+  // helmet to prevent the XSS attack
+  helmetSer(app)
+  // Sanitize the mongo query
+  sanitizeMongoQuery(app)
+  // Enabling cors
+  enableCors(app)
+
   const port = cfg.get<number>('app_port')
   app.useGlobalInterceptors(new LoggingInterceptor())
+
+  // setting up the filter globally
+  app.useGlobalFilters(new PayloadTooLargeFilter())
 
   app.setGlobalPrefix('api')
 
@@ -23,10 +46,13 @@ async function bootstrap() {
     }),
   )
 
-  const logger = app.get(WinstonLoggerService)
+  // using the cookie parser
+  app.use(cookieParser())
 
   // Swagger Service
   new SwaggerService(app)
+
+  // mongoose.set('debug', true)
 
   await app.listen(port)
   logger.log(`Application runnig on port - ${port}`)

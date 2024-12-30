@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common'
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import { AuthModule } from './auth/auth.module'
@@ -34,12 +34,31 @@ import { UserService } from './user/user.service'
 import { CryptoService } from './common/crypto/crypto.service'
 import { RolesService } from './roles/roles.service'
 import { WinstonLoggerService } from './common/logger/logger.service'
+import { CacheModule } from './cache/cache.module'
+import { CacheService } from './cache/cache.service'
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler'
+import { APP_GUARD } from '@nestjs/core'
+import { MongooseModule } from '@nestjs/mongoose'
+import { TodoModule } from './todo/todo.module'
+import { ValidateDomainMiddleware } from './common/middlewares/validate-domains'
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       load: [configuration],
       isGlobal: true, // Make the environment variables globally accessible in the app
+    }),
+
+    // Limiting the requests
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => [
+        {
+          ttl: config.get('throttle.ttl'),
+          limit: config.get('throttle.limit'),
+        },
+      ],
     }),
 
     TypeOrmModule.forRootAsync({
@@ -77,6 +96,19 @@ import { WinstonLoggerService } from './common/logger/logger.service'
     RoleModulePermissionsModule,
     IngestionModule,
     ScheduleModule.forRoot(),
+    CacheModule,
+
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule], // Import ConfigModule to access ConfigService
+      inject: [ConfigService], // Inject ConfigService
+      useFactory: async (configService: ConfigService) => ({
+        uri: `${configService.get<string>('mongo_config.uri')}/${configService.get<string>('mongo_config.db')}`, // Load MongoDB URI dynamically
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      }),
+    }),
+
+    TodoModule,
   ],
   controllers: [AppController],
   providers: [
@@ -94,6 +126,15 @@ import { WinstonLoggerService } from './common/logger/logger.service'
     RolesService,
     SeederService,
     WinstonLoggerService,
+    CacheService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(ValidateDomainMiddleware).forRoutes('*')
+  }
+}

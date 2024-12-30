@@ -11,6 +11,7 @@ import {
   Request,
   UnauthorizedException,
   UseGuards,
+  Response,
 } from '@nestjs/common'
 import {
   CreateUserPayload,
@@ -28,23 +29,30 @@ import { CryptoService } from '@app/common/crypto/crypto.service'
 import { v4 as uuidv4 } from 'uuid'
 import { EmailService } from '@app/common/email.service'
 import { ConfigService } from '@nestjs/config'
-import { Request as ExpressRequest } from 'express'
+import { Request as ExpressRequest, Response as ExpressResponse } from 'express'
+import { CacheService } from '@app/cache/cache.service'
 
 @Controller('auth')
 export class AuthController {
   app_base_url = null
+  allowedSites: any = []
   constructor(
     private readonly jwtService: JwtService,
     private readonly authService: AuthService,
     private readonly cryptoService: CryptoService,
     private readonly mailService: EmailService,
     private readonly configService: ConfigService,
+    private readonly cacheService: CacheService,
   ) {
     this.app_base_url = this.configService.get<string>('app_base_url')
+    this.allowedSites = this.configService.get<string>('parent_cookie_domain')
   }
 
   @Post('signup')
-  async signup(@Body() body: CreateUserPayload) {
+  async signup(
+    @Body() body: CreateUserPayload,
+    @Response() res: ExpressResponse,
+  ) {
     const hashedPassword: string = await this.cryptoService.hashPassword(
       body.password,
     )
@@ -67,11 +75,20 @@ export class AuthController {
     delete data.password
 
     const token = this.jwtService.generateToken(instanceToPlain(data))
-    return { access_token: token }
+    // return { access_token: token }
+    res.cookie('accessToken', token, {
+      httpOnly: true, // Prevents JavaScript access (XSS protection)
+      secure: true, // Ensures cookies are only sent over HTTPS
+      sameSite: 'none', // Limits cross-origin requests
+      domain: this.allowedSites, // Set the parent domain
+      maxAge: 1000 * 60 * 60, // 1 hour (in milliseconds)
+    })
+
+    return res.send({ message: 'Signup successful' })
   }
 
   @Post('login')
-  async login(@Body() body: LoginPayload) {
+  async login(@Body() body: LoginPayload, @Response() res: ExpressResponse) {
     const userDetails = instanceToPlain(
       await this.authService.findByCondition({
         email: body.email,
@@ -94,12 +111,29 @@ export class AuthController {
 
     // Store refresh token in the database (for future invalidation)
     await this.authService.saveRefreshToken(userDetails[0].id, refreshToken)
-    return { access_token: token, refreshToken }
+
+    res.cookie('accessToken', token, {
+      httpOnly: true, // Prevents JavaScript access (XSS protection)
+      secure: true, // Ensures cookies are only sent over HTTPS
+      sameSite: 'none', // Limits cross-origin requests
+      domain: this.allowedSites, // Set the parent domain
+      maxAge: 1000 * 60 * 60, // 1 hour (in milliseconds)
+    })
+
+    // return { access_token: token, refreshToken }
+
+    return res.send({ message: 'Login successful' })
   }
 
   @Post('logout')
-  async logout(@Req() request: ExpressRequest) {
-    const token = request.headers['authorization']?.split(' ')[1] // Extract JWT token
+  async logout(
+    @Req() request: ExpressRequest,
+    @Response() res: ExpressResponse,
+  ) {
+    // console.log(request.cookies.accessToken)
+    const token =
+      request.cookies.accessToken ??
+      request.headers['authorization']?.split(' ')[1] // Extract JWT token
     if (!token) {
       throw new HttpException('No token provided', HttpStatus.FORBIDDEN)
     }
@@ -114,12 +148,19 @@ export class AuthController {
     // Invalidate refresh token in the database (remove it or mark it as invalid)
     await this.authService.invalidateRefreshToken(decoded['sub']) // Assuming userId is in the sub field
 
-    return { message: 'Successfully logged out' }
+    // return { message: 'Successfully logged out' }
+    res.clearCookie('accessToken')
+    return res.send({ message: 'Successfully logged out' })
   }
 
   @Get('profile')
   @UseGuards(JwtAuthGuard, CaslGuard)
   async profile(@Request() req) {
+    const isCached = await this.cacheService.get(req.user.sub)
+    if (isCached) {
+      return JSON.parse(isCached)
+    }
+
     const userDetails = instanceToPlain(
       await this.authService.findByCondition({
         status: 1,
@@ -129,6 +170,10 @@ export class AuthController {
     if (!userDetails?.length)
       throw new UnauthorizedException('Unathorized Access')
     userDetails[0]['role'] = userDetails[0]['role']['role']
+    await this.cacheService.set(
+      req.user.sub,
+      JSON.stringify({ ...req.user, ...userDetails[0] }),
+    )
     return { ...req.user, ...userDetails[0] }
   }
 

@@ -30,7 +30,6 @@ export class LoggingInterceptor implements NestInterceptor {
         this.logger.log(
           `Request completed: ${method} ${url} in ${responseTime}ms`,
         )
-
         // Debugging purpose added the code
         // const formattedResponse = {
         //   statusCode: response.statusCode,

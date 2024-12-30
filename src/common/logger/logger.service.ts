@@ -22,6 +22,10 @@ export class WinstonLoggerService implements LoggerService {
           format: winston.format.combine(
             nestWinstonModuleUtilities.format.nestLike(), // NestJS-like format
             winston.format.colorize(),
+            winston.format.printf(({ timestamp, level, message }) => {
+              // Custom format: [application] number date time level message
+              return `[USER-MANAGEMENT-APP] ${process.pid} ${timestamp} ${level} ${message}`
+            }),
           ),
         }),
       ],

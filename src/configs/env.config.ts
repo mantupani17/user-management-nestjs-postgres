@@ -27,5 +27,20 @@ export const configuration = () => {
       email_from: process.env.EMAIL_FROM,
     },
     app_base_url: process.env.APP_BASEURL,
+    redis: {
+      host: process.env.REDIS_HOST,
+      port: process.env.REDIS_PORT,
+    },
+    throttle: {
+      ttl: process.env.THROTTLE_TTL,
+      limit: process.env.THROTTLE_LIMIT,
+    },
+    mongo_config: {
+      uri: process.env.MONGO_URI,
+      db: process.env.MONGO_DB,
+    },
+    request_limit: process.env.REQUEST_PAYLOAD_SIZE,
+    allowed_cookie_hosts: process.env.COOKIE_DOMAIN.split(','),
+    parent_cookie_domain: process.env.PARENT_COOKIE_DOMAIN,
   }
 }

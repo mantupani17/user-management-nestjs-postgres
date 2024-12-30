@@ -9,9 +9,14 @@ import { RoleModulePermission, User } from '@app/entities'
 import { CryptoService } from '@app/common/crypto/crypto.service'
 import { RoleModulePermissionsService } from '@app/role_module_permissions/role_module_permissions.service'
 import { EmailService } from '@app/common/email.service'
+import { CacheService } from '@app/cache/cache.service'
+import { CacheModule } from '@app/cache/cache.module'
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, RoleModulePermission])],
+  imports: [
+    TypeOrmModule.forFeature([User, RoleModulePermission]),
+    CacheModule,
+  ],
   controllers: [AuthController],
   providers: [
     AuthService,
@@ -23,6 +28,7 @@ import { EmailService } from '@app/common/email.service'
     CryptoService,
     RoleModulePermissionsService,
     EmailService,
+    CacheService,
   ],
 })
 export class AuthModule {}
