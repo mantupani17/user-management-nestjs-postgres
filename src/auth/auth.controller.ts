@@ -22,7 +22,7 @@ import {
 } from '@app/user/dtos/create-user.dto'
 import { JwtService } from '@app/common/jwt/jwt.service'
 import { JwtAuthGuard } from '@app/common/jwt/jwt.guard'
-import { CaslGuard } from '@app/common/ability/casl.guard'
+// import { CaslGuard } from '@app/common/ability/casl.guard'
 import { AuthService } from './auth.service'
 import { instanceToPlain } from 'class-transformer'
 import { CryptoService } from '@app/common/crypto/crypto.service'
@@ -31,6 +31,7 @@ import { EmailService } from '@app/common/email.service'
 import { ConfigService } from '@nestjs/config'
 import { Request as ExpressRequest, Response as ExpressResponse } from 'express'
 import { CacheService } from '@app/cache/cache.service'
+import { SkipGuard } from '@app/common/decorators/skiproute.decorator'
 
 @Controller('auth')
 export class AuthController {
@@ -49,6 +50,7 @@ export class AuthController {
   }
 
   @Post('signup')
+  @SkipGuard()
   async signup(
     @Body() body: CreateUserPayload,
     @Response() res: ExpressResponse,
@@ -88,13 +90,13 @@ export class AuthController {
   }
 
   @Post('login')
+  @SkipGuard()
   async login(@Body() body: LoginPayload, @Response() res: ExpressResponse) {
     const userDetails = instanceToPlain(
       await this.authService.findByCondition({
         email: body.email,
       }),
     )
-
     if (!userDetails?.length)
       throw new UnauthorizedException('Unathorized Access')
 
@@ -154,7 +156,7 @@ export class AuthController {
   }
 
   @Get('profile')
-  @UseGuards(JwtAuthGuard, CaslGuard)
+  @UseGuards(JwtAuthGuard)
   async profile(@Request() req) {
     const isCached = await this.cacheService.get(req.user.sub)
     if (isCached) {

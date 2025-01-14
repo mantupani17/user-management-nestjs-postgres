@@ -23,7 +23,6 @@ export class ValidateDomainMiddleware implements NestMiddleware {
     const host = req.headers.host // Get the current request host
 
     const isExistDomain = this.allowedSites.some((domain: string) => {
-      console.log(domain, host)
       return this.includesWithRegex(host, domain)
     })
 

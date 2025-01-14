@@ -11,15 +11,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     private jwtService: JwtService,
     private readonly configService: ConfigService,
   ) {
-    console.log(ExtractJwt)
     super({
       // jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      jwtFromRequest:
-        ExtractJwt.fromExtractors([
-          (req: Request) => {
-            return req?.cookies?.accessToken // Extract token from cookie
-          },
-        ]) ?? ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        (req: Request) => {
+          return req?.cookies?.accessToken // Extract token from cookie
+        },
+      ]),
       secretOrKey: configService.get<string>('jwt.secret'), // Same secret used to sign the JWT
     })
   }

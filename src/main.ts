@@ -7,11 +7,14 @@ import { ConfigService } from '@nestjs/config'
 import { WinstonLoggerService } from './common/logger/logger.service'
 import { helmetSer } from '@app/common/servers/helmet'
 import { requestBodyLimit } from './common/servers/body-limit'
-import { PayloadTooLargeFilter } from './common/filters/payload-too-large'
+import { PayloadTooLargeFilter } from './common/filters/payload-too-large.filter'
 import { sanitizeMongoQuery } from './common/servers/mongo-sanitize'
 // import mongoose from 'mongoose'
 import * as cookieParser from 'cookie-parser'
 import { enableCors } from './common/servers/enable-cors'
+import { MicroserviceOptions, Transport } from '@nestjs/microservices'
+import * as csurf from 'csurf'
+import { CsrfExceptionFilter } from './common/filters/csruf-validate.filter'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -33,7 +36,7 @@ async function bootstrap() {
   app.useGlobalInterceptors(new LoggingInterceptor())
 
   // setting up the filter globally
-  app.useGlobalFilters(new PayloadTooLargeFilter())
+  app.useGlobalFilters(new PayloadTooLargeFilter(), new CsrfExceptionFilter())
 
   app.setGlobalPrefix('api')
 
@@ -49,12 +52,36 @@ async function bootstrap() {
   // using the cookie parser
   app.use(cookieParser())
 
+  // Use CSRF(Cross-Site Request Forgery) protection
+  app.use(
+    csurf({
+      cookie: {
+        httpOnly: true, // Helps prevent XSS
+        sameSite: true, // Helps prevent CSRF
+      },
+    }),
+  )
+
   // Swagger Service
   new SwaggerService(app)
 
   // mongoose.set('debug', true)
 
+  app.connectMicroservice<MicroserviceOptions>({
+    transport: Transport.KAFKA,
+    options: {
+      client: {
+        brokers: ['localhost:9092'],
+      },
+      consumer: {
+        groupId: 'nestjs-consumer-group',
+      },
+    },
+  })
+
+  await app.startAllMicroservices()
+
   await app.listen(port)
-  logger.log(`Application runnig on port - ${port}`)
+  logger.log(`Application running on port - ${port}`)
 }
 bootstrap()

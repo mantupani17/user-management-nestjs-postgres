@@ -19,7 +19,7 @@ import {
   TrackIngestion,
   IngestionData,
 } from './entities'
-import { JwtStrategy, JwtAuthGuard, JwtService } from '@app/common/jwt'
+import { JwtStrategy, JwtService } from '@app/common/jwt'
 import { AbilityService } from './common/ability/casl-ability.service'
 import { CaslGuard } from './common/ability/casl.guard'
 import { ConfigModule, ConfigService } from '@nestjs/config'
@@ -40,7 +40,12 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler'
 import { APP_GUARD } from '@nestjs/core'
 import { MongooseModule } from '@nestjs/mongoose'
 import { TodoModule } from './todo/todo.module'
-import { ValidateDomainMiddleware } from './common/middlewares/validate-domains'
+import { ValidateDomainMiddleware } from './common/filters/validate-domains.filter'
+// import { RolesGuard } from './common/guard/role-guard'
+import { TodoStatusModule } from './todo-status/todo-status.module'
+import { ChatModule } from './chat/chat.module'
+import { NotificationModule } from './notification/notification.module'
+import { KafkaModule } from './kafka/kafka.module'
 
 @Module({
   imports: [
@@ -98,6 +103,7 @@ import { ValidateDomainMiddleware } from './common/middlewares/validate-domains'
     ScheduleModule.forRoot(),
     CacheModule,
 
+    // Mongodb implementation
     MongooseModule.forRootAsync({
       imports: [ConfigModule], // Import ConfigModule to access ConfigService
       inject: [ConfigService], // Inject ConfigService
@@ -109,13 +115,20 @@ import { ValidateDomainMiddleware } from './common/middlewares/validate-domains'
     }),
 
     TodoModule,
+
+    TodoStatusModule,
+
+    ChatModule,
+
+    NotificationModule,
+
+    KafkaModule,
   ],
   controllers: [AppController],
   providers: [
     AppService,
     JwtService,
     JwtStrategy,
-    JwtAuthGuard,
     AbilityService,
     CaslGuard,
     IngTrackSchedulerService,
@@ -127,10 +140,18 @@ import { ValidateDomainMiddleware } from './common/middlewares/validate-domains'
     SeederService,
     WinstonLoggerService,
     CacheService,
+    // {
+    //   provide: APP_GUARD,
+    //   useClass: JwtAuthGuard
+    // },
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
     },
+    // {
+    //   provide: APP_GUARD,
+    //   useClass: RolesGuard,
+    // },
   ],
 })
 export class AppModule implements NestModule {

@@ -1,7 +1,8 @@
-import { Controller, Get } from '@nestjs/common'
+import { Controller, Get, Req, Res } from '@nestjs/common'
 import { AppService } from './app.service'
 import { CacheService } from './cache/cache.service'
 import { Logger } from '@nestjs/common'
+import { Response } from 'express'
 // import { Throttle } from '@nestjs/throttler';
 
 @Controller()
@@ -36,5 +37,12 @@ export class AppController {
     } catch (error) {
       console.log(error)
     }
+  }
+
+  @Get('csrf-token')
+  getCsrfToken(@Req() req: any, @Res() res: Response) {
+    // Retrieve CSRF token from the request
+    const csrfToken = req.csrfToken()
+    res.json({ csrfToken })
   }
 }

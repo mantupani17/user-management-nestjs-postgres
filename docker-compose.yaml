@@ -1,10 +1,21 @@
 version: '3.8'
 
 services:
+  # nginx:
+  #   image: nginx
+  #   container_name: nginx-proxy
+  #   networks:
+  #     - application-network
+  #   ports:
+  #     - "8080:80"
+  #   volumes:
+  #     - ./nginx.conf:/etc/nginx/nginx.conf:ro
+  
   application: 
     build:
       context: .
       dockerfile: Dockerfile
+    container_name: application
     networks:
       - application-network
     ports:

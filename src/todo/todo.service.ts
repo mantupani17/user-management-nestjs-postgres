@@ -11,4 +11,49 @@ export class TodoService extends BaseService {
   ) {
     super(todoModel)
   }
+
+  getTodosByAggregate(
+    where: any = {},
+    select: any = { result: 0 },
+    sort: any = { _id: -1 },
+    limit: number = 10,
+    skip: number = 0,
+  ) {
+    return this.todoModel.aggregate([
+      {
+        $match: where,
+      },
+      {
+        $sort: sort,
+      },
+      {
+        $skip: skip,
+      },
+      {
+        $limit: limit,
+      },
+      {
+        $lookup: {
+          from: 'todostatuses',
+          localField: 'status',
+          foreignField: '_id',
+          as: 'result',
+        },
+      },
+      {
+        $unwind: {
+          path: '$result',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $addFields: {
+          status: '$result.title',
+        },
+      },
+      {
+        $project: select,
+      },
+    ])
+  }
 }

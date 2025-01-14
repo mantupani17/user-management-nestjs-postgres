@@ -25,7 +25,9 @@ export class BaseService implements BaseServiceI {
   }
 
   update(id: any, updateModuleDto) {
-    return this.moduleRepository.findByIdAndUpdate(id, updateModuleDto)
+    return this.moduleRepository.findByIdAndUpdate(id, updateModuleDto, {
+      new: true,
+    })
   }
 
   remove(id: any) {
@@ -38,5 +40,9 @@ export class BaseService implements BaseServiceI {
 
   updateByCond(cond, updateModuleDto) {
     return this.moduleRepository.update(cond, updateModuleDto)
+  }
+
+  aggregate(agg: any) {
+    return this.moduleRepository.aggregate(agg)
   }
 }

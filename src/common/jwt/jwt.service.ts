@@ -8,8 +8,8 @@ export class JwtService {
   private jwtExpiration = null // Token expiration time (e.g., '1h', '30m', '1d')
 
   constructor(private readonly configService: ConfigService) {
-    this.jwtSecret = configService.get<string>('jwt.secret')
-    this.jwtExpiration = configService.get<string>('jwt.expiresIn')
+    this.jwtSecret = this.configService.get<string>('jwt.secret')
+    this.jwtExpiration = this.configService.get<string>('jwt.expiresIn')
   }
 
   // Method to generate a JWT token from a payload
