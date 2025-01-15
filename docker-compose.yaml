@@ -1,17 +1,54 @@
 version: '3.8'
 
 services:
-  # nginx:
-  #   image: nginx
-  #   container_name: nginx-proxy
-  #   networks:
-  #     - application-network
-  #   ports:
-  #     - "8080:80"
-  #   volumes:
-  #     - ./nginx.conf:/etc/nginx/nginx.conf:ro
-  
-  application: 
+  redis:
+    image: redis:alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - application-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  zookeeper:
+    image: bitnami/zookeeper:latest
+    container_name: zookeeper
+    environment:
+      ALLOW_ANONYMOUS_LOGIN: "yes"
+    ports:
+      - "2181:2181"
+    networks:
+      - application-network
+
+  kafka:
+    image: bitnami/kafka:latest
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_CFG_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_CFG_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: "true"
+      ALLOW_PLAINTEXT_LISTENER: "yes"
+    ports:
+      - "9092:9092"
+    networks:
+      - application-network
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 9092"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  application:
     build:
       context: .
       dockerfile: Dockerfile
@@ -19,8 +56,9 @@ services:
     networks:
       - application-network
     ports:
-      - "3009:3009"  # Expose port 3000 (adjust if using a different port)
+      - "3009:3009"
     environment:
+      - PORT=3009
       - DATABASE_HOST=db
       - DATABASE_PORT=5432
       - DATABASE_USERNAME=postgres
@@ -33,21 +71,63 @@ services:
       - DATA_DIR=data
       - INGESTION_API=https://jsonplaceholder.typicode.com/
       - RUN_INGESTION_CRON=false
+      - APP_BASEURL=http://0.0.0.0:3009
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - THROTTLE_TTL=60000
+      - THROTTLE_LIMIT=3
+      - MONGO_DB=ingestion_db
+      - KAFKA_HOST=kafka:9092
+      - MONGO_URI=mongodb://mongodb:27017
+      - REQUEST_PAYLOAD_SIZE=1mb
+      - COOKIE_DOMAIN=localhost,example.com
+      - PARENT_COOKIE_DOMAIN=localhost
+      - KAFKA_TOPIC=example-topic
+      - KAFKA_CONSUMER_GROUP=example-group
     depends_on:
-      - db  # Ensure the database service is up before starting the app
+      - db
+      - redis
+      - kafka
+      - mongodb
 
   db:
     image: postgres:latest
-    container_name: postgres-new
+    container_name: db
     environment:
       POSTGRES_PASSWORD: test@123
     ports:
       - "5432:5432"
-    volumes:
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql  # Mount init.sql to be executed on startup
     networks:
       - application-network
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql  # Mount init.sql to be executed on startup
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - application-network
+    healthcheck:
+      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 networks:
   application-network:
     driver: bridge
+
+volumes:
+  redis_data:
+  mongo_data:
+  postgres_data:

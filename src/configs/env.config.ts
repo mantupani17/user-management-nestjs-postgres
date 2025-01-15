@@ -42,5 +42,11 @@ export const configuration = () => {
     request_limit: process.env.REQUEST_PAYLOAD_SIZE,
     allowed_cookie_hosts: process.env.COOKIE_DOMAIN.split(','),
     parent_cookie_domain: process.env.PARENT_COOKIE_DOMAIN,
+    kafka: {
+      host: process.env.KAFKA_HOST,
+      topic: process.env.KAFKA_TOPIC,
+      consumer: process.env.KAFKA_CONSUMER || 'example-consumer',
+      consumer_group: process.env.KAFKA_CONSUMER_GROUP,
+    },
   }
 }

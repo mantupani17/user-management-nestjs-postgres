@@ -66,15 +66,14 @@ async function bootstrap() {
   new SwaggerService(app)
 
   // mongoose.set('debug', true)
-
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.KAFKA,
     options: {
       client: {
-        brokers: ['localhost:9092'],
+        brokers: [cfg.get<string>('kafka.host')],
       },
       consumer: {
-        groupId: 'nestjs-consumer-group',
+        groupId: cfg.get<string>('kafka.topic'),
       },
     },
   })
