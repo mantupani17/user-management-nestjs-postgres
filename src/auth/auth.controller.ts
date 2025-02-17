@@ -7,7 +7,6 @@ import {
   HttpStatus,
   NotFoundException,
   Post,
-  Req,
   Request,
   UnauthorizedException,
   UseGuards,
@@ -65,6 +64,7 @@ export class AuthController {
       verifyToken,
       verifyTokenExpirey: Date.now() + 3600000,
       created_at: new Date(),
+      roleId: 2,
     })
 
     const verifyUrl = `${this.app_base_url}/verify-email?token=${verifyToken}`
@@ -92,7 +92,7 @@ export class AuthController {
   @Post('login')
   @SkipGuard()
   async login(@Body() body: LoginPayload, @Response() res: ExpressResponse) {
-    const userDetails = instanceToPlain(
+    let userDetails = instanceToPlain(
       await this.authService.findByCondition({
         email: body.email,
       }),
@@ -100,11 +100,28 @@ export class AuthController {
     if (!userDetails?.length)
       throw new UnauthorizedException('Unathorized Access')
 
-    const permission = await this.authService.getRolePermissions(
-      userDetails[0]?.roleId || 2,
+    userDetails = userDetails[0]
+
+    const verifyPassword = await this.cryptoService.verifyPassword(
+      body.password,
+      userDetails.password,
     )
-    userDetails[0]['role'] = userDetails[0]['role']['role']
-    const payload = { ...userDetails[0], sub: userDetails[0].id, permission } // example payload
+    if (!verifyPassword) {
+      throw new UnauthorizedException('UnAuthorized, Credentials Invalid!')
+    }
+
+    if (!userDetails.isVerified) {
+      throw new UnauthorizedException(
+        'UnAuthorized, Email verification is pending!',
+      )
+    }
+
+    const permission = await this.authService.getRolePermissions(
+      userDetails?.roleId || 2,
+    )
+    userDetails['role'] = userDetails['role']['role']
+    delete userDetails.password
+    const payload = { ...userDetails, sub: userDetails.id, permission } // example payload
     const token = this.jwtService.generateToken(payload)
 
     const refreshToken = this.jwtService.generateToken(payload, {
@@ -112,7 +129,7 @@ export class AuthController {
     })
 
     // Store refresh token in the database (for future invalidation)
-    await this.authService.saveRefreshToken(userDetails[0].id, refreshToken)
+    await this.authService.saveRefreshToken(userDetails.id, refreshToken)
 
     res.cookie('accessToken', token, {
       httpOnly: true, // Prevents JavaScript access (XSS protection)
@@ -128,8 +145,9 @@ export class AuthController {
   }
 
   @Post('logout')
+  @UseGuards(JwtAuthGuard)
   async logout(
-    @Req() request: ExpressRequest,
+    @Request() request: ExpressRequest,
     @Response() res: ExpressResponse,
   ) {
     // console.log(request.cookies.accessToken)
@@ -146,10 +164,9 @@ export class AuthController {
     if (!decoded) {
       throw new HttpException('Invalid token', HttpStatus.FORBIDDEN)
     }
-
     // Invalidate refresh token in the database (remove it or mark it as invalid)
     await this.authService.invalidateRefreshToken(decoded['sub']) // Assuming userId is in the sub field
-
+    await this.cacheService.delete(request['user'].sub)
     // return { message: 'Successfully logged out' }
     res.clearCookie('accessToken')
     return res.send({ message: 'Successfully logged out' })
@@ -158,12 +175,14 @@ export class AuthController {
   @Get('profile')
   @UseGuards(JwtAuthGuard)
   async profile(@Request() req) {
-    const isCached = await this.cacheService.get(req.user.sub)
+    let isCached = await this.cacheService.get(req.user.sub)
     if (isCached) {
-      return JSON.parse(isCached)
+      isCached = JSON.parse(isCached)
+      delete isCached.password
+      return isCached
     }
 
-    const userDetails = instanceToPlain(
+    let userDetails = instanceToPlain(
       await this.authService.findByCondition({
         status: 1,
         id: Number(req.user.sub),
@@ -171,12 +190,13 @@ export class AuthController {
     )
     if (!userDetails?.length)
       throw new UnauthorizedException('Unathorized Access')
-    userDetails[0]['role'] = userDetails[0]['role']['role']
+    userDetails = userDetails[0]
+    userDetails['role'] = userDetails['role']['role']
     await this.cacheService.set(
       req.user.sub,
-      JSON.stringify({ ...req.user, ...userDetails[0] }),
+      JSON.stringify({ ...req.user, ...userDetails }),
     )
-    return { ...req.user, ...userDetails[0] }
+    return { ...req.user, ...userDetails }
   }
 
   @Post('verify-email')

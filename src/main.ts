@@ -13,8 +13,8 @@ import { sanitizeMongoQuery } from './common/servers/mongo-sanitize'
 import * as cookieParser from 'cookie-parser'
 import { enableCors } from './common/servers/enable-cors'
 import { MicroserviceOptions, Transport } from '@nestjs/microservices'
-import * as csurf from 'csurf'
 import { CsrfExceptionFilter } from './common/filters/csruf-validate.filter'
+import { initCsurfMiddleware } from './common/csurf.middleware'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -53,14 +53,7 @@ async function bootstrap() {
   app.use(cookieParser())
 
   // Use CSRF(Cross-Site Request Forgery) protection
-  app.use(
-    csurf({
-      cookie: {
-        httpOnly: true, // Helps prevent XSS
-        sameSite: true, // Helps prevent CSRF
-      },
-    }),
-  )
+  initCsurfMiddleware(app)
 
   // Swagger Service
   new SwaggerService(app)

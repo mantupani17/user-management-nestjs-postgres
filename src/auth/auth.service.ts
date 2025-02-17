@@ -31,11 +31,13 @@ export class AuthService extends BaseService {
         'users.username',
         'users.roleId',
         'users.id',
+        'users.isVerified',
         'users.firstName',
         'users.lastName',
         'users.mobile',
         'users.status',
         'roles.role',
+        'users.password',
       ])
       .getMany()
     return queryBuilder

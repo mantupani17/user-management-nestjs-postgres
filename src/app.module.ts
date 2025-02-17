@@ -41,11 +41,13 @@ import { APP_GUARD } from '@nestjs/core'
 import { MongooseModule } from '@nestjs/mongoose'
 import { TodoModule } from './todo/todo.module'
 import { ValidateDomainMiddleware } from './common/filters/validate-domains.filter'
-// import { RolesGuard } from './common/guard/role-guard'
 import { TodoStatusModule } from './todo-status/todo-status.module'
 import { ChatModule } from './chat/chat.module'
 import { NotificationModule } from './notification/notification.module'
 import { KafkaModule } from './kafka/kafka.module'
+import { EncryptionMiddleware } from './common/encryption.middleware'
+import { DecryptionMiddleware } from './common/decryption.middleware'
+import { EncryptionService } from './common/crypto/encryption.service'
 
 @Module({
   imports: [
@@ -140,6 +142,7 @@ import { KafkaModule } from './kafka/kafka.module'
     SeederService,
     WinstonLoggerService,
     CacheService,
+    EncryptionService,
     // {
     //   provide: APP_GUARD,
     //   useClass: JwtAuthGuard
@@ -156,6 +159,10 @@ import { KafkaModule } from './kafka/kafka.module'
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
+    consumer.apply(EncryptionMiddleware).forRoutes('*') // Apply encryption middleware if needed
+
+    consumer.apply(DecryptionMiddleware).forRoutes('*') // Apply decryption middleware if needed
+
     consumer.apply(ValidateDomainMiddleware).forRoutes('*')
   }
 }

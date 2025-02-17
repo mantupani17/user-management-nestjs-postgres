@@ -7,6 +7,11 @@ import {
 import { ConfigService } from '@nestjs/config'
 import { Request, Response, NextFunction } from 'express'
 
+function includesWithRegex(string, pattern) {
+  const regex = new RegExp(pattern) // Convert pattern to a regex
+  return regex.test(string)
+}
+
 @Injectable()
 export class ValidateDomainMiddleware implements NestMiddleware {
   allowedSites: any = []
@@ -14,16 +19,10 @@ export class ValidateDomainMiddleware implements NestMiddleware {
     this.allowedSites = this.configService.get<any>('allowed_cookie_hosts')
   }
 
-  includesWithRegex(string, pattern) {
-    const regex = new RegExp(pattern) // Convert pattern to a regex
-    return regex.test(string)
-  }
-
   use(req: Request, res: Response, next: NextFunction) {
     const host = req.headers.host // Get the current request host
-
     const isExistDomain = this.allowedSites.some((domain: string) => {
-      return this.includesWithRegex(host, domain)
+      return includesWithRegex(host, domain)
     })
 
     if (!host || !isExistDomain) {

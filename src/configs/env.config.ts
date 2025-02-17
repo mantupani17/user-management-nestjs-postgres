@@ -48,5 +48,9 @@ export const configuration = () => {
       consumer: process.env.KAFKA_CONSUMER || 'example-consumer',
       consumer_group: process.env.KAFKA_CONSUMER_GROUP,
     },
+    secrets: {
+      public: process.env.PUBLIC_KEY.replace(/\\n/g, '\n').replace(/\\/g, ''),
+      private: process.env.PRIVATE_KEY.replace(/\\n/g, '\n').replace(/\\/g, ''),
+    },
   }
 }

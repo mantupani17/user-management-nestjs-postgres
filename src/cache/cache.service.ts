@@ -14,6 +14,10 @@ export class CacheService {
   }
 
   async delete(key: string): Promise<void> {
-    await this.cache.delete(key)
+    try {
+      await this.cache.delete(key)
+    } catch (error) {
+      console.log(error)
+    }
   }
 }
