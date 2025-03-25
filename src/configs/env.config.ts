@@ -19,6 +19,7 @@ export const configuration = () => {
     },
     ingestion_api_url: process.env.INGESTION_API,
     run_ingestion_cron: process.env.RUN_INGESTION_CRON,
+    run_sync_clean_keypair: process.env.RUN_SYNC_CLEAN_CRON,
     mailer: {
       host: process.env.EMAIL_HOST,
       port: process.env.EMAIL_PORT,

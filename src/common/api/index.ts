@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import axios, { AxiosInstance, AxiosError } from 'axios'
+export * from './photos.api'
 
 @Injectable()
 export class AxiosService {

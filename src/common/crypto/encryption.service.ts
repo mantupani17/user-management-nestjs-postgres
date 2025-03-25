@@ -13,11 +13,11 @@ export class EncryptionService {
   }
 
   // Generate a hash from a plain password
-  async encrypt(data: any) {
+  async encrypt(data: any, publicKey = this.publicKey) {
     const buffer = Buffer.from(JSON.stringify(data), 'utf8')
     const encrypted = await crypto.publicEncrypt(
       {
-        key: this.publicKey,
+        key: publicKey,
         padding: crypto.constants.RSA_PKCS1_OAEP_PADDING, // Ensure correct padding
       },
       buffer,
@@ -26,11 +26,14 @@ export class EncryptionService {
   }
 
   // Verify if the plain password matches the hash
-  async decrypt(encryptedData: string): Promise<boolean> {
+  async decrypt(
+    encryptedData: string,
+    privateKey = this.privateKey,
+  ): Promise<boolean> {
     const buffer = Buffer.from(encryptedData, 'base64')
     const decrypted = crypto.privateDecrypt(
       {
-        key: this.privateKey,
+        key: privateKey,
         padding: crypto.constants.RSA_PKCS1_OAEP_PADDING, // Ensure correct padding
       },
       buffer,
