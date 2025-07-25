@@ -3,35 +3,43 @@ import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import { AuthModule } from './auth/auth.module'
 import { UserModule } from './user/user.module'
-import { DocumentsModule } from './documents/documents.module'
+// import { DocumentsModule } from './documents/documents.module'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { RolesModule } from './roles/roles.module'
 import { ModulesModule } from './modules/modules.module'
 import { PermissionsModule } from './permissions/permissions.module'
 import { RoleModulePermissionsModule } from './role_module_permissions/role_module_permissions.module'
-import { User, Role, TrackIngestion, IngestionData } from './entities'
+import {
+  User,
+  Role,
+  // TrackIngestion,
+  // IngestionData
+} from './entities'
 import { JwtStrategy, JwtService } from '@app/common/jwt'
 import { CaslGuard, AbilityService } from '@app/common/ability'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { configuration } from './configs/env.config'
-import { IngestionModule } from './ingestion/ingestion.module'
+// import { IngestionModule } from './ingestion/ingestion.module'
 import { ScheduleModule } from '@nestjs/schedule'
-import { PhotosApisService, AxiosService } from '@app/common/api'
+import {
+  // PhotosApisService,
+  AxiosService,
+} from '@app/common/api'
 import { SeederService } from '@app/common'
 import { UserService } from './user/user.service'
 import { CryptoService } from '@app/common/crypto/crypto.service'
 import { RolesService } from './roles/roles.service'
-import { WinstonLoggerService } from '@app/common/logger/logger.service'
+// import { WinstonLoggerService } from '@app/common/logger/logger.service'
 import { CacheModule } from './cache/cache.module'
 import { CacheService } from './cache/cache.service'
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler'
 import { APP_GUARD } from '@nestjs/core'
 import { MongooseModule } from '@nestjs/mongoose'
-import { TodoModule } from './todo/todo.module'
-import { TodoStatusModule } from './todo-status/todo-status.module'
-import { ChatModule } from './chat/chat.module'
-import { NotificationModule } from './notification/notification.module'
-import { KafkaModule } from './kafka/kafka.module'
+// import { TodoModule } from './todo/todo.module'
+// import { TodoStatusModule } from './todo-status/todo-status.module'
+// import { ChatModule } from './chat/chat.module'
+// import { NotificationModule } from './notification/notification.module'
+// import { KafkaModule } from './kafka/kafka.module'
 import {
   EncryptionMiddleware,
   DecryptionMiddleware,
@@ -41,7 +49,7 @@ import { EncryptionService } from '@app/common/crypto/encryption.service'
 import { EncryptionModule } from './encryption/encryption.module'
 import {
   SyncCleanKeypairSchedulerService,
-  IngTrackSchedulerService,
+  // IngTrackSchedulerService,
 } from '@app/common/schedulers'
 import { Encryption, EncryptionSchema } from './schemas/encryption.schema'
 import { MongooseConfigModule, TypeOrmConfigModule } from '@app/common/modules'
@@ -66,15 +74,20 @@ import { MongooseConfigModule, TypeOrmConfigModule } from '@app/common/modules'
     }),
 
     TypeOrmConfigModule,
-    TypeOrmModule.forFeature([TrackIngestion, IngestionData, User, Role]),
+    TypeOrmModule.forFeature([
+      // TrackIngestion,
+      // IngestionData,
+      User,
+      Role,
+    ]),
     AuthModule,
     UserModule,
-    DocumentsModule,
+    // DocumentsModule,
     RolesModule,
     ModulesModule,
     PermissionsModule,
     RoleModulePermissionsModule,
-    IngestionModule,
+    // IngestionModule,
     ScheduleModule.forRoot(),
     CacheModule,
 
@@ -84,11 +97,11 @@ import { MongooseConfigModule, TypeOrmConfigModule } from '@app/common/modules'
       { name: Encryption.name, schema: EncryptionSchema },
     ]),
 
-    TodoModule,
-    TodoStatusModule,
-    ChatModule,
-    NotificationModule,
-    KafkaModule,
+    // TodoModule,
+    // TodoStatusModule,
+    // ChatModule,
+    // NotificationModule,
+    // KafkaModule,
     EncryptionModule,
   ],
   controllers: [AppController],
@@ -98,14 +111,14 @@ import { MongooseConfigModule, TypeOrmConfigModule } from '@app/common/modules'
     JwtStrategy,
     AbilityService,
     CaslGuard,
-    IngTrackSchedulerService,
+    // IngTrackSchedulerService,
     AxiosService,
-    PhotosApisService,
+    // PhotosApisService,
     UserService,
     CryptoService,
     RolesService,
     SeederService,
-    WinstonLoggerService,
+    // WinstonLoggerService,
     CacheService,
     EncryptionService,
     SyncCleanKeypairSchedulerService,

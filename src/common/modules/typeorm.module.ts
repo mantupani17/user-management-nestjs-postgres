@@ -4,9 +4,9 @@ import {
   User,
   Permission,
   Role,
-  Document as DocumentEntity,
-  TrackIngestion,
-  IngestionData,
+  // Document as DocumentEntity,
+  // TrackIngestion,
+  // IngestionData,
 } from '@app/entities'
 import { Module } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
@@ -30,9 +30,9 @@ import { TypeOrmModule } from '@nestjs/typeorm'
           RoleModulePermission,
           Permission,
           Role,
-          DocumentEntity,
-          TrackIngestion,
-          IngestionData,
+          // DocumentEntity,
+          // TrackIngestion,
+          // IngestionData,
         ],
         logging: configService.get<boolean>('database.debug'),
       }),
