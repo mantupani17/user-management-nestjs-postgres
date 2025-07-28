@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import * as nodemailer from 'nodemailer'
 import { ConfigService } from '@nestjs/config'
+import * as sgMail from '@sendgrid/mail'
 
 @Injectable()
 export class EmailService {
@@ -17,10 +18,12 @@ export class EmailService {
         pass: this.configService.get<string>('mailer.password'),
       },
     })
+
+    sgMail.setApiKey(this.configService.get<string>('sendgridCfg.apiKey'))
   }
 
   // Send email
-  async sendEmail(to: string, subject: string, text: string) {
+  async sendTestEmail(to: string, subject: string, text: string) {
     const mailOptions = {
       from: this.configService.get<string>('mailer.email_from'),
       to,
@@ -35,6 +38,24 @@ export class EmailService {
     } catch (error) {
       console.error('Error sending email: ', error)
       throw new Error('Error sending email')
+    }
+  }
+
+  async sendEmail(to: string, subject: string, text: string, html?: string) {
+    const msg = {
+      to,
+      from: this.configService.get<string>('sendgridCfg.fromemail'), // Must be a verified sender
+      subject,
+      text,
+      html: html || `<p>${text}</p>`,
+    }
+
+    try {
+      await sgMail.send(msg)
+      return { message: 'Email sent successfully' }
+    } catch (error) {
+      console.error('SendGrid Error:', error)
+      throw error
     }
   }
 }

@@ -13,7 +13,7 @@ COPY --from=build /app/dist ./dist
 COPY package.json package-lock.json ./
 RUN npm install --only=production
 
-EXPOSE 3009
+EXPOSE 5000
 ENV NODE_ENV=production
 
 # Command to run the app in production mode

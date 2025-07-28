@@ -1,8 +1,11 @@
 import { Injectable, OnModuleInit } from '@nestjs/common'
 import { UserService } from '@app/user/user.service'
-import { User, Role } from '@app/entities'
+import { User, Role, Client } from '@app/entities'
 import { CryptoService } from './crypto/crypto.service'
 import { RolesService } from '@app/roles/roles.service'
+import { ClientService } from '@app/client/client.service'
+import { v4 as uuidv4 } from 'uuid'
+import { ConfigService } from '@nestjs/config'
 
 @Injectable()
 export class SeederService implements OnModuleInit {
@@ -10,6 +13,8 @@ export class SeederService implements OnModuleInit {
     private readonly userService: UserService,
     private readonly cryptoService: CryptoService,
     private readonly roleService: RolesService,
+    private readonly clientService: ClientService,
+    private readonly cfgService: ConfigService,
   ) {}
 
   // Method to create an admin user if it doesn't exist
@@ -61,9 +66,31 @@ export class SeederService implements OnModuleInit {
     return
   }
 
+  async createClient() {
+    // Check if an admin already exists
+    const adminRoleExists = await this.clientService.findOneByCond({
+      name: 'GEN-AI-SERVICE',
+    }) // Assuming you have a role column
+    if (adminRoleExists) {
+      console.log('GEN-AI-SERVICE Client already exists!')
+      return
+    }
+
+    const newRole = new Client()
+    newRole.name = 'GEN-AI-SERVICE'
+    newRole.secret = uuidv4()
+    newRole.created_by = 1
+    newRole.url = this.cfgService.get<string>('genAIServiceURL')
+
+    await this.clientService.create(newRole) // Assuming you have a create method
+    console.log(`Client created! - ${newRole.secret}`)
+    return
+  }
+
   // This hook will run when the module is initialized
   async onModuleInit() {
     await this.createAdminRole()
     await this.createAdminUser()
+    await this.createClient()
   }
 }

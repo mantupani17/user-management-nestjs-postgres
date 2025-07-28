@@ -35,6 +35,7 @@
     "@nestjs/throttler": "^6.3.0",
     "@nestjs/typeorm": "^10.0.2",
     "@nestjs/websockets": "^10.4.15",
+    "@sendgrid/mail": "^8.1.5",
     "axios": "^1.7.9",
     "cacheable": "^1.8.6",
     "class-transformer": "^0.5.1",

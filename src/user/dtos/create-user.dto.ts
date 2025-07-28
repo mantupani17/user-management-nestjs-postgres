@@ -43,6 +43,10 @@ export class CreateUserPayload {
   @IsOptional()
   @IsNumber()
   roleId: number
+
+  @IsOptional()
+  @IsString()
+  name: string
 }
 
 export class LoginPayload {

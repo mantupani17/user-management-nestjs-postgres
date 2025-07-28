@@ -12,7 +12,7 @@ export class SyncCleanKeypairSchedulerService {
   private logger = new Logger('Generate Key Pair')
 
   stringToBoolean(str: string): boolean {
-    return str.toLowerCase() === 'true'
+    return str?.toLowerCase() === 'true'
   }
 
   constructor(

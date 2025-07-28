@@ -50,8 +50,20 @@ export const configuration = () => {
       consumer_group: process.env.KAFKA_CONSUMER_GROUP,
     },
     secrets: {
-      public: process.env.PUBLIC_KEY.replace(/\\n/g, '\n').replace(/\\/g, ''),
-      private: process.env.PRIVATE_KEY.replace(/\\n/g, '\n').replace(/\\/g, ''),
+      public: process.env?.PUBLIC_KEY?.replace(/\\n/g, '\n')?.replace(
+        /\\/g,
+        '',
+      ),
+      private: process.env?.PRIVATE_KEY?.replace(/\\n/g, '\n')?.replace(
+        /\\/g,
+        '',
+      ),
     },
+    origins: process.env.ALLOWED_ORIGINS,
+    sendgridCfg: {
+      apiKey: process.env.SENDGRID_API_KEY,
+      fromemail: process.env.SENDGRID_FROM_EMAIL,
+    },
+    genAIServiceURL: process.env.GEN_AI_SERVICE_URL,
   }
 }

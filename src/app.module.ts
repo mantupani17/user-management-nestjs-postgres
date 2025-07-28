@@ -41,8 +41,8 @@ import { MongooseModule } from '@nestjs/mongoose'
 // import { NotificationModule } from './notification/notification.module'
 // import { KafkaModule } from './kafka/kafka.module'
 import {
-  EncryptionMiddleware,
-  DecryptionMiddleware,
+  // EncryptionMiddleware,
+  // DecryptionMiddleware,
   ValidateDomainMiddleware,
 } from '@app/common/middlewares'
 import { EncryptionService } from '@app/common/crypto/encryption.service'
@@ -53,6 +53,9 @@ import {
 } from '@app/common/schedulers'
 import { Encryption, EncryptionSchema } from './schemas/encryption.schema'
 import { MongooseConfigModule, TypeOrmConfigModule } from '@app/common/modules'
+import { ClientModule } from './client/client.module'
+import { Client } from './entities/client.entity'
+import { ClientService } from './client/client.service'
 
 @Module({
   imports: [
@@ -79,6 +82,7 @@ import { MongooseConfigModule, TypeOrmConfigModule } from '@app/common/modules'
       // IngestionData,
       User,
       Role,
+      Client,
     ]),
     AuthModule,
     UserModule,
@@ -103,6 +107,8 @@ import { MongooseConfigModule, TypeOrmConfigModule } from '@app/common/modules'
     // NotificationModule,
     // KafkaModule,
     EncryptionModule,
+
+    ClientModule,
   ],
   controllers: [AppController],
   providers: [
@@ -110,6 +116,7 @@ import { MongooseConfigModule, TypeOrmConfigModule } from '@app/common/modules'
     JwtService,
     JwtStrategy,
     AbilityService,
+    ClientService,
     CaslGuard,
     // IngTrackSchedulerService,
     AxiosService,
@@ -138,9 +145,9 @@ import { MongooseConfigModule, TypeOrmConfigModule } from '@app/common/modules'
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(EncryptionMiddleware).forRoutes('*') // Apply encryption middleware if needed
+    // consumer.apply(EncryptionMiddleware).forRoutes('*') // Apply encryption middleware if needed
 
-    consumer.apply(DecryptionMiddleware).forRoutes('*') // Apply decryption middleware if needed
+    // consumer.apply(DecryptionMiddleware).forRoutes('*') // Apply decryption middleware if needed
 
     consumer.apply(ValidateDomainMiddleware).forRoutes('*')
   }

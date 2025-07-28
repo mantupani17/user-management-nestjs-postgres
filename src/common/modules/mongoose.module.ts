@@ -7,11 +7,12 @@ import { MongooseModule } from '@nestjs/mongoose'
     MongooseModule.forRootAsync({
       imports: [ConfigModule], // Import ConfigModule to access ConfigService
       inject: [ConfigService], // Inject ConfigService
-      useFactory: async (configService: ConfigService) => ({
-        uri: `${configService.get<string>('mongo_config.uri')}/${configService.get<string>('mongo_config.db')}`, // Load MongoDB URI dynamically
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-      }),
+      useFactory: async (configService: ConfigService) => {
+        return {
+          uri: `${configService.get<string>('mongo_config.uri')}`,
+          dbName: `${configService.get<string>('mongo_config.db')}`,
+        }
+      },
     }),
   ],
   controllers: [],

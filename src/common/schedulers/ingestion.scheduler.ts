@@ -16,7 +16,7 @@ export class IngTrackSchedulerService {
   private run_ = false
 
   stringToBoolean(str: string): boolean {
-    return str.toLowerCase() === 'true'
+    return str?.toLowerCase() === 'true'
   }
 
   constructor(

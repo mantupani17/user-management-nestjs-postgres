@@ -17,7 +17,7 @@ export class CsrfExceptionFilter implements ExceptionFilter {
         message: 'Invalid CSRF token',
       })
     }
-
+    // console.log(exception.message)
     // Handle other errors
     return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,

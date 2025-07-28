@@ -5,10 +5,10 @@ export function initCsurfMiddleware(app: INestApplication) {
   // Apply CSRF middleware only to specific routes
   app.use((req, res, next) => {
     const excludeCsurfRoutes = [
-      '/api/auth/login',
-      '/api/auth/signup',
+      '/api/v1/auth/login',
+      '/api/v1/auth/signup',
       '/profile',
-      '/api/auth/verify-email',
+      '/api/v1/auth/verify-email',
     ] // Define protected routes
     if (!excludeCsurfRoutes.includes(req.path)) {
       return csurf({

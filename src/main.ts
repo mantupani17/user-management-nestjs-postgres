@@ -13,8 +13,8 @@ import { sanitizeMongoQuery } from './common/servers/mongo-sanitize'
 import * as cookieParser from 'cookie-parser'
 import { enableCors } from './common/servers/enable-cors'
 // import { MicroserviceOptions, Transport } from '@nestjs/microservices'
-import { CsrfExceptionFilter } from './common/filters/csruf-validate.filter'
-import { initCsurfMiddleware } from './common/csurf.middleware'
+// import { CsrfExceptionFilter } from './common/filters/csruf-validate.filter'
+// import { initCsurfMiddleware } from './common/csurf.middleware'
 import {
   appConfig,
   GenerateSwagger,
@@ -52,13 +52,16 @@ async function bootstrap() {
   // Sanitize the mongo query
   sanitizeMongoQuery(app)
   // Enabling cors
-  enableCors(app)
+  enableCors(app, cfg)
 
   const port = cfg.get<number>('app_port')
   app.useGlobalInterceptors(new LoggingInterceptor() as any)
 
   // setting up the filter globally
-  app.useGlobalFilters(new PayloadTooLargeFilter(), new CsrfExceptionFilter())
+  app.useGlobalFilters(
+    new PayloadTooLargeFilter(),
+    // new CsrfExceptionFilter()
+  )
 
   app.setGlobalPrefix('api/v1')
 
@@ -75,7 +78,7 @@ async function bootstrap() {
   app.use(cookieParser())
 
   // Use CSRF(Cross-Site Request Forgery) protection
-  initCsurfMiddleware(app)
+  // initCsurfMiddleware(app)
 
   GenerateSwagger.generate(app as any, {
     description: 'User Management APIs',
@@ -97,7 +100,7 @@ async function bootstrap() {
   //   },
   // })
 
-  await app.startAllMicroservices()
+  // await app.startAllMicroservices()
 
   await app.listen(port)
   logger.log(`Application running on port - ${port}`)

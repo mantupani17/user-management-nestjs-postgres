@@ -10,7 +10,7 @@ import {
   Request,
   UnauthorizedException,
   UseGuards,
-  Response,
+  // Response,
 } from '@nestjs/common'
 import {
   CreateUserPayload,
@@ -28,9 +28,10 @@ import { CryptoService } from '@app/common/crypto/crypto.service'
 import { v4 as uuidv4 } from 'uuid'
 import { EmailService } from '@app/common/email.service'
 import { ConfigService } from '@nestjs/config'
-import { Request as ExpressRequest, Response as ExpressResponse } from 'express'
+import { Request as ExpressRequest } from 'express'
 import { CacheService } from '@app/cache/cache.service'
 import { SkipGuard } from '@app/common/decorators/skiproute.decorator'
+import { ClientService } from '@app/client/client.service'
 
 @Controller('auth')
 export class AuthController {
@@ -43,6 +44,7 @@ export class AuthController {
     private readonly mailService: EmailService,
     private readonly configService: ConfigService,
     private readonly cacheService: CacheService,
+    private readonly clientService: ClientService,
   ) {
     this.app_base_url = this.configService.get<string>('app_base_url')
     this.allowedSites = this.configService.get<string>('parent_cookie_domain')
@@ -52,7 +54,7 @@ export class AuthController {
   @SkipGuard()
   async signup(
     @Body() body: CreateUserPayload,
-    @Response() res: ExpressResponse,
+    // @Response() res: ExpressResponse,
   ) {
     const hashedPassword: string = await this.cryptoService.hashPassword(
       body.password,
@@ -77,21 +79,24 @@ export class AuthController {
     delete data.password
 
     const token = this.jwtService.generateToken(instanceToPlain(data))
-    // return { access_token: token }
-    res.cookie('accessToken', token, {
-      httpOnly: true, // Prevents JavaScript access (XSS protection)
-      secure: true, // Ensures cookies are only sent over HTTPS
-      sameSite: 'none', // Limits cross-origin requests
-      domain: this.allowedSites, // Set the parent domain
-      maxAge: 1000 * 60 * 60, // 1 hour (in milliseconds)
-    })
+    return { access_token: token }
+    // res.cookie('accessToken', token, {
+    //   httpOnly: true, // Prevents JavaScript access (XSS protection)
+    //   secure: true, // Ensures cookies are only sent over HTTPS
+    //   sameSite: 'none', // Limits cross-origin requests
+    //   domain: this.allowedSites, // Set the parent domain
+    //   maxAge: 1000 * 60 * 60, // 1 hour (in milliseconds)
+    // })
 
-    return res.send({ message: 'Signup successful' })
+    // return res.status(200).json({ access_token: token })
   }
 
   @Post('login')
   @SkipGuard()
-  async login(@Body() body: LoginPayload, @Response() res: ExpressResponse) {
+  async login(
+    @Body() body: LoginPayload,
+    // @Response() res: ExpressResponse
+  ) {
     let userDetails = instanceToPlain(
       await this.authService.findByCondition({
         email: body.email,
@@ -131,24 +136,24 @@ export class AuthController {
     // Store refresh token in the database (for future invalidation)
     await this.authService.saveRefreshToken(userDetails.id, refreshToken)
 
-    res.cookie('accessToken', token, {
-      httpOnly: true, // Prevents JavaScript access (XSS protection)
-      secure: true, // Ensures cookies are only sent over HTTPS
-      sameSite: 'none', // Limits cross-origin requests
-      domain: this.allowedSites, // Set the parent domain
-      maxAge: 1000 * 60 * 60, // 1 hour (in milliseconds)
-    })
+    // res.cookie('accessToken', token, {
+    //   httpOnly: true, // Prevents JavaScript access (XSS protection)
+    //   secure: true, // Ensures cookies are only sent over HTTPS
+    //   sameSite: 'none', // Limits cross-origin requests
+    //   domain: this.allowedSites, // Set the parent domain
+    //   maxAge: 1000 * 60 * 60, // 1 hour (in milliseconds)
+    // })
 
-    // return { access_token: token, refreshToken }
-
-    return res.send({ message: 'Login successful' })
+    // return res.status(200).json({ access_token: token, refreshToken })
+    // return res.send({ message: 'Login successful' })
+    return { access_token: token, refreshToken }
   }
 
   @Post('logout')
   @UseGuards(JwtAuthGuard)
   async logout(
     @Request() request: ExpressRequest,
-    @Response() res: ExpressResponse,
+    // @Response() res: ExpressResponse,
   ) {
     // console.log(request.cookies.accessToken)
     const token =
@@ -167,9 +172,9 @@ export class AuthController {
     // Invalidate refresh token in the database (remove it or mark it as invalid)
     await this.authService.invalidateRefreshToken(decoded['sub']) // Assuming userId is in the sub field
     await this.cacheService.delete(request['user'].sub)
-    // return { message: 'Successfully logged out' }
-    res.clearCookie('accessToken')
-    return res.send({ message: 'Successfully logged out' })
+    return { message: 'Successfully logged out' }
+    // res.clearCookie('accessToken')
+    // return res.json({ message: 'Successfully logged out' })
   }
 
   @Get('profile')
@@ -290,5 +295,19 @@ export class AuthController {
     return {
       message: 'Password Updated Successfuly.',
     }
+  }
+
+  @Post('verify-access')
+  @UseGuards(JwtAuthGuard)
+  async verifyAccess(@Request() req, @Body() body: any) {
+    const { clientSecret } = body
+    if (!req?.user) return { data: false }
+    const client = await this.clientService.findOneByCond({
+      secret: clientSecret,
+    })
+    if (!client || !req?.user) {
+      return { data: false }
+    }
+    return { data: true, user: req.user }
   }
 }
