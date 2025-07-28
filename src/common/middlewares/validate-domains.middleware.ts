@@ -16,9 +16,7 @@ function includesWithRegex(string, pattern) {
 export class ValidateDomainMiddleware implements NestMiddleware {
   allowedSites: any = []
   constructor(private readonly configService: ConfigService) {
-    this.allowedSites = this.configService
-      .get<any>('allowed_cookie_hosts')
-      .split(',')
+    this.allowedSites = this.configService.get<any>('allowed_cookie_hosts')
   }
 
   use(req: Request, res: Response, next: NextFunction) {

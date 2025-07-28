@@ -29,7 +29,7 @@ async function bootstrap() {
       appName: 'User Management(IAM)',
       appVersion: '1.0.0',
       deplomentEnv: 'Local',
-      traceUrl: 'http://localhost:4318/v1/traces',
+      traceUrl: 'http://13.223.184.1:4318/v1/traces',
     })
   ).start()
 
