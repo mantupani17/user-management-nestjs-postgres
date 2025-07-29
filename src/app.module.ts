@@ -12,6 +12,10 @@ import { RoleModulePermissionsModule } from './role_module_permissions/role_modu
 import {
   User,
   Role,
+  Permission,
+  Client,
+  Module as ModuleEntity,
+  RoleModulePermission,
   // TrackIngestion,
   // IngestionData
 } from './entities'
@@ -47,15 +51,16 @@ import {
 } from '@app/common/middlewares'
 import { EncryptionService } from '@app/common/crypto/encryption.service'
 import { EncryptionModule } from './encryption/encryption.module'
-import {
-  SyncCleanKeypairSchedulerService,
-  // IngTrackSchedulerService,
-} from '@app/common/schedulers'
+import {} from // SyncCleanKeypairSchedulerService,
+// IngTrackSchedulerService,
+'@app/common/schedulers'
 import { Encryption, EncryptionSchema } from './schemas/encryption.schema'
 import { MongooseConfigModule, TypeOrmConfigModule } from '@app/common/modules'
 import { ClientModule } from './client/client.module'
-import { Client } from './entities/client.entity'
 import { ClientService } from './client/client.service'
+import { PermissionsService } from './permissions/permissions.service'
+import { ModulesService } from './modules/modules.service'
+import { RoleModulePermissionsService } from './role_module_permissions/role_module_permissions.service'
 
 @Module({
   imports: [
@@ -83,6 +88,9 @@ import { ClientService } from './client/client.service'
       User,
       Role,
       Client,
+      Permission,
+      ModuleEntity,
+      RoleModulePermission,
     ]),
     AuthModule,
     UserModule,
@@ -125,10 +133,13 @@ import { ClientService } from './client/client.service'
     CryptoService,
     RolesService,
     SeederService,
+    PermissionsService,
+    RoleModulePermissionsService,
+    ModulesService,
     // WinstonLoggerService,
     CacheService,
     EncryptionService,
-    SyncCleanKeypairSchedulerService,
+    // SyncCleanKeypairSchedulerService,
     // {
     //   provide: APP_GUARD,
     //   useClass: JwtAuthGuard
